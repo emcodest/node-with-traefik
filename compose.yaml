@@ -14,6 +14,7 @@ services:
       - ./traefik:/etc/traefik
       - /var/run/docker.sock:/var/run/docker.sock:ro     
       - ./traefik/acme:/acme # Volume for Let's Encrypt certificates
+      - ./traefik/letsencrypt:/letsencrypt
     environment:
       - CF_DNS_API_TOKEN # Example for Cloudflare DNS challenge
     command:
@@ -21,13 +22,15 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false" # Redundant here, but good practice
       - "--entrypoints.web.address=:80"
+      - --entrypoints.websecure.address=:443
       - "--api.insecure=true" # Enable insecure API for dashboard (dev only)
       - "--api.dashboard=true"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.email=eeema9@gmail.com" # Replace with your email
-      - "--certificatesresolvers.myresolver.acme.storage=/acme/acme.json"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true" # Use HTTP-01 challenge (simpler if only one server)
+      - --certificatesresolvers.myresolver.acme.tlschallenge=true
+      - "--certificatesresolvers.myresolver.acme.email=emcodellc@gmail.com" # Replace with your email
+      # - "--certificatesresolvers.myresolver.acme.storage=/acme/acme.json"
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge=true" # Use HTTP-01 challenge (simpler if only one server)
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)" # Access dashboard at traefik.localhost
@@ -56,3 +59,5 @@ services:
       - "traefik.http.services.nodeserver.loadbalancer.server.port=3111"
       - "traefik.http.routers.nodeserver.entrypoints=websecure" # Route through HTTPS
       - "traefik.http.routers.nodeserver.tls=true" # Enable TLS for your app
+      # - "traefik.http.routers.nodeapp.entrypoints=websecure"
+      - "traefik.http.routers.nodeserver.tls.certresolver=myresolver"
