@@ -27,7 +27,7 @@ func main() {
 	router.Use(cors.Default())
 	router.GET("/", func(c *gin.Context) {
 		// make http get request
-		res, err := http.Get("http://node-server")
+		res, err := http.Get("http://node-server:3111")
 		defer res.Body.Close()
 		if err != nil {
 
