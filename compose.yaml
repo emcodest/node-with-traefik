@@ -8,10 +8,14 @@ services:
     #   - --entrypoints.web.address=:80
     ports:
       - "80:80"
-      - "8080:8080" # Dashboard
+      - "443:443" # Expose HTTPS port
+      - "8095:8080" # Dashboard
     volumes:
       - ./traefik:/etc/traefik
       - /var/run/docker.sock:/var/run/docker.sock:ro     
+      - ./traefik/acme:/acme # Volume for Let's Encrypt certificates
+    environment:
+      - CF_DNS_API_TOKEN # Example for Cloudflare DNS challenge
     command:
       - "--configFile=/etc/traefik/traefik.yml"
       - "--providers.docker=true"
@@ -19,12 +23,20 @@ services:
       - "--entrypoints.web.address=:80"
       - "--api.insecure=true" # Enable insecure API for dashboard (dev only)
       - "--api.dashboard=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.email=eeema9@gmail.com" # Replace with your email
+      - "--certificatesresolvers.myresolver.acme.storage=/acme/acme.json"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true" # Use HTTP-01 challenge (simpler if only one server)
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)" # Access dashboard at traefik.localhost
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
       - "traefik.http.routers.traefik-dashboard.middlewares=auth"
       - "traefik.http.middlewares.auth.basicauth.users=admin:$$apr1$$H6uskkkW$$IgXLP6ewIy6MOizj6rzjsg" # Example user: admin, password: password (SHA1 hashed) - USE A SECURE METHOD IN PRODUCTION
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure" # Secure dashboard
+      - "traefik.http.routers.traefik-dashboard.tls=true" # Enable TLS for dashboard
+
 
   nodeserver:
     container_name: node-server
@@ -40,5 +52,7 @@ services:
       - ./.env-prod
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nodeserver.rule=Host(`node.idraws.ng`)" # Route requests to myapp.localhost to this service
+      - "traefik.http.routers.nodeserver.rule=Host(`node.idraws.ng`)" # Route requests to node.idraws.ng to this service
       - "traefik.http.services.nodeserver.loadbalancer.server.port=3111"
+      - "traefik.http.routers.nodeserver.entrypoints=websecure" # Route through HTTPS
+      - "traefik.http.routers.nodeserver.tls=true" # Enable TLS for your app

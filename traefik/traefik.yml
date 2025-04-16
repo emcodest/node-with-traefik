@@ -1,3 +1,15 @@
+# api:
+#   dashboard: true
+#   insecure: true # Only for local development - NEVER in production
+
+# entryPoints:
+#   web:
+#     address: ":80"
+
+# providers:
+#   docker:
+#     exposedByDefault: false # Don't expose all containers by default
+
 api:
   dashboard: true
   insecure: true # Only for local development - NEVER in production
@@ -5,7 +17,9 @@ api:
 entryPoints:
   web:
     address: ":80"
+  websecure:
+    address: ":443"
 
 providers:
   docker:
-    exposedByDefault: false # Don't expose all containers by default
+    exposedByDefault: false
