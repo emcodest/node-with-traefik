@@ -15,8 +15,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro     
       - ./traefik/acme:/acme # Volume for Let's Encrypt certificates
       - ./traefik/letsencrypt:/letsencrypt
-    environment:
-      - CF_DNS_API_TOKEN # Example for Cloudflare DNS challenge
+    # environment:
+    #   - CF_DNS_API_TOKEN # Example for Cloudflare DNS challenge
     command:
       - "--configFile=/etc/traefik/traefik.yml"
       - "--providers.docker=true"
@@ -29,7 +29,7 @@ services:
       - "--certificatesresolvers.myresolver.acme.email=emcodellc@gmail.com" # Replace with your email
       # - "--certificatesresolvers.myresolver.acme.storage=/acme/acme.json"
       # - "--certificatesresolvers.myresolver.acme.httpchallenge=true" # Use HTTP-01 challenge (simpler if only one server)
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
     labels:
       - "traefik.enable=true"
@@ -61,3 +61,5 @@ services:
       - "traefik.http.routers.nodeserver.tls=true" # Enable TLS for your app
       # - "traefik.http.routers.nodeapp.entrypoints=websecure"
       - "traefik.http.routers.nodeserver.tls.certresolver=myresolver"
+    expose:
+      - "3111"
