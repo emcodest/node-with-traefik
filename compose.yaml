@@ -40,5 +40,5 @@ services:
       - ./.env-prod
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.my-app.rule=Host(`myapp.localhost`)" # Route requests to myapp.localhost to this service
-      - "traefik.http.services.my-app.loadbalancer.server.port=3111"
+      - "traefik.http.routers.nodeserver.rule=Host(`node.idraws.ng`)" # Route requests to myapp.localhost to this service
+      - "traefik.http.services.nodeserver.loadbalancer.server.port=3111"
