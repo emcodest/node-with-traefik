@@ -2,15 +2,30 @@ services:
   traefik:
     container_name: traefik-server
     image: traefik:v3.0
-    command:
-      - --api.dashboard=true
-      - --providers.docker=true
-      - --entrypoints.web.address=:80
+    # command:
+    #   - --api.dashboard=true
+    #   - --providers.docker=true
+    #   - --entrypoints.web.address=:80
     ports:
       - "80:80"
       - "8080:8080" # Dashboard
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock:ro     
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false" # Redundant here, but good practice
+      - "--entrypoints.web.address=:80"
+      - "--api.insecure=true" # Enable insecure API for dashboard (dev only)
+      - "--api.dashboard=true"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)" # Access dashboard at traefik.localhost
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=admin:$$apr1$$H6uskkkW$$IgXLP6ewIy6MOizj6rzjsg" # Example user: admin, password: password (SHA1 hashed) - USE A SECURE METHOD IN PRODUCTION
+
   nodeserver:
     container_name: node-server
     build:
@@ -25,5 +40,5 @@ services:
       - ./.env-prod
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nodeserver.rule=Host(`localhost`)"
-      - "traefik.http.services.nodeserver.loadbalancer.server.port=3111"
+      - "traefik.http.routers.my-app.rule=Host(`myapp.localhost`)" # Route requests to myapp.localhost to this service
+      - "traefik.http.services.my-app.loadbalancer.server.port=3111"
