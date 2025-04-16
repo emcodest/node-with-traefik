@@ -8,34 +8,25 @@ services:
     #   - --entrypoints.web.address=:80
     ports:
       - "80:80"
-      - "443:443" # Expose HTTPS port
       - "8080:8080" # Dashboard
     volumes:
       - ./traefik:/etc/traefik
       - /var/run/docker.sock:/var/run/docker.sock:ro     
-      - ./traefik/acme:/acme # Volume for Let's Encrypt certificates
-      - ./traefik/letsencrypt:/letsencrypt
-    # environment:
-    #   - CF_DNS_API_TOKEN # Example for Cloudflare DNS challenge
     command:
-      - --api.dashboard=true
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --providers.docker=true
-      - --certificatesresolvers.myresolver.acme.tlschallenge=true
-      - --certificatesresolvers.myresolver.acme.email=emcodellc@gmail.com
-      - --certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json
-    # labels:
-    #   - "traefik.enable=true"
-    #   - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)" # Access dashboard at traefik.localhost
-    #   - "traefik.http.routers.traefik-dashboard.service=api@internal"
-    #   - "traefik.http.routers.traefik-dashboard.middlewares=auth"
-    #   - "traefik.http.middlewares.auth.basicauth.users=admin:$$apr1$$H6uskkkW$$IgXLP6ewIy6MOizj6rzjsg" # Example user: admin, password: password (SHA1 hashed) - USE A SECURE METHOD IN PRODUCTION
-    #   - "traefik.http.routers.traefik-dashboard.entrypoints=websecure" # Secure dashboard
-    #   - "traefik.http.routers.traefik-dashboard.tls=true" # Enable TLS for dashboard
+      - "--configFile=/etc/traefik/traefik.yml"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false" # Redundant here, but good practice
+      - "--entrypoints.web.address=:80"
+      - "--api.insecure=true" # Enable insecure API for dashboard (dev only)
+      - "--api.dashboard=true"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)" # Access dashboard at traefik.localhost
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=admin:$$apr1$$H6uskkkW$$IgXLP6ewIy6MOizj6rzjsg" # Example user: admin, password: password (SHA1 hashed) - USE A SECURE METHOD IN PRODUCTION
 
-
-  nodeapp:
+  nodeserver:
     container_name: node-server
     build:
       context: .
@@ -49,9 +40,5 @@ services:
       - ./.env-prod
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nodeapp.rule=Host(`node.idraws.ng`)"
-      - "traefik.http.routers.nodeapp.entrypoints=websecure"
-      - "traefik.http.routers.nodeapp.tls.certresolver=myresolver"
-      - "traefik.http.services.nodeapp.loadbalancer.server.port=3111"
-    expose:
-      - "3111"
+      - "traefik.http.routers.nodeserver.rule=Host(`node.idraws.ng`)" # Route requests to node.idraws.ng to this service
+      - "traefik.http.services.nodeserver.loadbalancer.server.port=3111"
