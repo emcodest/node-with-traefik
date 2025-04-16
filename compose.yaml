@@ -42,3 +42,18 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.nodeserver.rule=Host(`node.idraws.ng`)" # Route requests to node.idraws.ng to this service
       - "traefik.http.services.nodeserver.loadbalancer.server.port=3111"
+  goserver:
+    container_name: go-server
+    build:
+      context: .
+      dockerfile: go.Dockerfile
+    ports:
+      - "3112:3112"
+    volumes:
+      - ./:/usr/src/app
+    env_file:
+      - ./.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.goserver.rule=Host(`go.idraws.ng`)" # Route requests to node.idraws.ng to this service
+      - "traefik.http.services.goserver.loadbalancer.server.port=3112"
