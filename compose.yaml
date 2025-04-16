@@ -1,0 +1,29 @@
+services:
+  traefik:
+    container_name: traefik-server
+    image: traefik:v3.0
+    command:
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+      - "8080:8080" # Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  nodeserver:
+    container_name: node-server
+    build:
+      context: .
+      dockerfile: node.Dockerfile
+    ports:
+      - "3111:3000"
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - ./.env-prod
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nodeserver.rule=Host(`localhost`)"
+      - "traefik.http.services.nodeserver.loadbalancer.server.port=3111"
