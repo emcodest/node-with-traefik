@@ -45,7 +45,7 @@ services:
   goserver:
     container_name: go-server
     build:
-      context: .
+      context: ./go-app
       dockerfile: go.Dockerfile
     ports:
       - "3112:3112"
