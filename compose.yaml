@@ -55,5 +55,5 @@ services:
       - ./go-app/.env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.goserver.rule=Host(`go.idraws.ng`)" # Route requests to node.idraws.ng to this service
+      - "traefik.http.routers.goserver.rule=Host(`goapp.idraws.ng`)" # Route requests to node.idraws.ng to this service
       - "traefik.http.services.goserver.loadbalancer.server.port=3112"
